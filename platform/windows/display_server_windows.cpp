@@ -252,6 +252,10 @@ Vector2i DisplayServerWindows::_get_screen_expand_offset(int p_screen) const {
 }
 
 void DisplayServerWindows::_set_mouse_mode_impl(DisplayServerEnums::MouseMode p_mode) {
+	if (p_mode != DisplayServerEnums::MOUSE_MODE_CAPTURED ){
+		just_left_capture = true;
+	}
+	
 	if (p_mode == DisplayServerEnums::MOUSE_MODE_HIDDEN || p_mode == DisplayServerEnums::MOUSE_MODE_CAPTURED || p_mode == DisplayServerEnums::MOUSE_MODE_CONFINED_HIDDEN) {
 		// Hide cursor before moving.
 		if (hCursor == nullptr) {
@@ -1001,9 +1005,9 @@ void DisplayServerWindows::warp_mouse(const Point2i &p_position) {
 		p.y = p_position.y;
 		ClientToScreen(windows[window_id].hWnd, &p);
 		
-		MSG msg;
-		//while (PeekMessage(&msg, nullptr, WM_MOUSEMOVE, WM_MOUSEMOVE, PM_REMOVE)) {}
-		while (PeekMessage(&msg, nullptr, WM_INPUT, WM_INPUT, PM_REMOVE)) {}
+		// MSG msg;
+		// while (PeekMessage(&msg, nullptr, WM_MOUSEMOVE, WM_MOUSEMOVE, PM_REMOVE)) {}
+		// while (PeekMessage(&msg, nullptr, WM_INPUT, WM_INPUT, PM_REMOVE)) {}
 		SetCursorPos(p.x, p.y);
 	}
 }
@@ -5629,6 +5633,11 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 		} break;
 		case WM_INPUT: {
 			if (!use_raw_input) {
+				break;
+			}
+
+			if (just_left_capture){
+				just_left_capture = false;
 				break;
 			}
 
