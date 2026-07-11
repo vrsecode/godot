@@ -254,6 +254,7 @@ class DisplayServerWindows : public DisplayServer {
 	int key_event_pos;
 
 	bool just_left_capture = false;
+	bool we_hidden_lowk = false;
 	bool old_invalid;
 	int old_x, old_y;
 	Point2i center;

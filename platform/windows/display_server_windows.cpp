@@ -306,18 +306,6 @@ void DisplayServerWindows::_set_mouse_mode_impl(DisplayServerEnums::MouseMode p_
 		DisplayServerEnums::CursorShape c = cursor_shape;
 		cursor_shape = DisplayServerEnums::CURSOR_MAX;
 		cursor_set_shape(c);
-
-		// Even though WM_MOUSEMOVE messages are flushed, there tends to be one new WM_MOUSEMOVE
-		// created after leaving CAPTURED mode that is still trying to use the centered position.
-		// This is relevant for trying to warp the mouse directly after leaving CAPTURED mode
-		// and the mouse is currently being moved.
-		//if (mouse_mode == DisplayServerEnums::MOUSE_MODE_CAPTURED){
-		MSG msg;
-		while (PeekMessage(&msg, nullptr, WM_MOUSEMOVE, WM_MOUSEMOVE, PM_REMOVE)) {}
-		while (PeekMessage(&msg, nullptr, WM_INPUT, WM_INPUT, PM_REMOVE)) {}
-
-		//just_left_capture = true;
-		//}
 	}
 }
 
@@ -1012,7 +1000,10 @@ void DisplayServerWindows::warp_mouse(const Point2i &p_position) {
 		p.x = p_position.x;
 		p.y = p_position.y;
 		ClientToScreen(windows[window_id].hWnd, &p);
-
+		
+		MSG msg;
+		//while (PeekMessage(&msg, nullptr, WM_MOUSEMOVE, WM_MOUSEMOVE, PM_REMOVE)) {}
+		while (PeekMessage(&msg, nullptr, WM_INPUT, WM_INPUT, PM_REMOVE)) {}
 		SetCursorPos(p.x, p.y);
 	}
 }
