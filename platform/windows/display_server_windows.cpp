@@ -299,6 +299,18 @@ void DisplayServerWindows::_set_mouse_mode_impl(DisplayServerEnums::MouseMode p_
 		ClipCursor(nullptr);
 
 		_register_raw_input_devices(DisplayServerEnums::INVALID_WINDOW_ID);
+
+		// Even though WM_MOUSEMOVE messages are flushed, there tends to be one new WM_MOUSEMOVE
+		// created after leaving CAPTURED mode that is still trying to use the centered position.
+		// This is relevant for trying to warp the mouse directly after leaving CAPTURED mode
+		// and the mouse is currently being moved.
+		//if (mouse_mode == DisplayServerEnums::MOUSE_MODE_CAPTURED){
+		MSG msg;
+		while (PeekMessage(&msg, nullptr, WM_MOUSEMOVE, WM_MOUSEMOVE, PM_REMOVE)) {}
+		while (PeekMessage(&msg, nullptr, WM_INPUT, WM_INPUT, PM_REMOVE)) {}
+
+		just_left_capture = true;
+		//}
 	}
 
 	if (p_mode == DisplayServerEnums::MOUSE_MODE_VISIBLE || p_mode == DisplayServerEnums::MOUSE_MODE_CONFINED) {
@@ -6114,6 +6126,11 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 			}
 
 			if (mouse_mode == DisplayServerEnums::MOUSE_MODE_CAPTURED && use_raw_input) {
+				break;
+			}
+
+			if (just_left_capture){
+				//just_left_capture = false;
 				break;
 			}
 
