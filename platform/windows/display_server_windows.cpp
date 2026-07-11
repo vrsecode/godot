@@ -299,6 +299,13 @@ void DisplayServerWindows::_set_mouse_mode_impl(DisplayServerEnums::MouseMode p_
 		ClipCursor(nullptr);
 
 		_register_raw_input_devices(DisplayServerEnums::INVALID_WINDOW_ID);
+	}
+
+	if (p_mode == DisplayServerEnums::MOUSE_MODE_VISIBLE || p_mode == DisplayServerEnums::MOUSE_MODE_CONFINED) {
+		// Show cursor.
+		DisplayServerEnums::CursorShape c = cursor_shape;
+		cursor_shape = DisplayServerEnums::CURSOR_MAX;
+		cursor_set_shape(c);
 
 		// Even though WM_MOUSEMOVE messages are flushed, there tends to be one new WM_MOUSEMOVE
 		// created after leaving CAPTURED mode that is still trying to use the centered position.
@@ -309,15 +316,8 @@ void DisplayServerWindows::_set_mouse_mode_impl(DisplayServerEnums::MouseMode p_
 		while (PeekMessage(&msg, nullptr, WM_MOUSEMOVE, WM_MOUSEMOVE, PM_REMOVE)) {}
 		while (PeekMessage(&msg, nullptr, WM_INPUT, WM_INPUT, PM_REMOVE)) {}
 
-		just_left_capture = true;
+		//just_left_capture = true;
 		//}
-	}
-
-	if (p_mode == DisplayServerEnums::MOUSE_MODE_VISIBLE || p_mode == DisplayServerEnums::MOUSE_MODE_CONFINED) {
-		// Show cursor.
-		DisplayServerEnums::CursorShape c = cursor_shape;
-		cursor_shape = DisplayServerEnums::CURSOR_MAX;
-		cursor_set_shape(c);
 	}
 }
 
@@ -6130,7 +6130,7 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 			}
 
 			if (just_left_capture){
-				//just_left_capture = false;
+				just_left_capture = false;
 				break;
 			}
 
